@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI("AIzaSyDftv-j6kqo8rYfKanbfArQcdc3JZrXUcg");
+const genAI = new GoogleGenerativeAI("AIzaSyB73CCek3Jj8sFKOQntdqb-uKTdAJOX_dk");
 
 /**
  * System instructions per character, derived from persona.txt.
