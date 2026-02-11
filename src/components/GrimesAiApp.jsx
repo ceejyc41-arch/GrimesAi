@@ -9,22 +9,23 @@ import {
   Paperclip,
   Mic,
   Menu,
-  X
+  X,
+  SendHorizonal
 } from 'lucide-react';
+import { getGeminiResponse } from '../lib/gemini';
 
 const characters = ['Rick Grimes', 'Joel Miller', 'Arthur Morgan'];
-const tones = ['Calm', 'Protective', 'Observant', 'Introverted'];
 
 export default function GrimesAiApp() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [identity, setIdentity] = useState('Silver-stocks11');
+  const [identity, setIdentity] = useState('Ceejy-Ochoa');
   const [editingIdentity, setEditingIdentity] = useState(false);
 
   const [character, setCharacter] = useState('Arthur Morgan');
-  const [tone, setTone] = useState('Calm');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const bottomRef = useRef(null);
 
@@ -33,59 +34,63 @@ export default function GrimesAiApp() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const persona = {
-    'Arthur Morgan': {
-      Calm: 'Yeah… I hear you. Take it slow.',
-      Protective: 'You’re safe right now. I got you.',
-      Observant: 'There’s more behind those words.',
-      Introverted: '…I understand.'
-    },
-    'Rick Grimes': {
-      Calm: 'We’ll figure this out.',
-      Protective: 'Stay behind me. I won’t let anything happen.',
-      Observant: 'That changes things.',
-      Introverted: 'Say what you need to say.'
-    },
-    'Joel Miller': {
-      Calm: 'Alright… I’m listening.',
-      Protective: 'You’re not alone in this.',
-      Observant: 'I’ve seen this before.',
-      Introverted: 'Yeah. I get it.'
-    }
+  /** CLEAR CHAT ON CHARACTER SWITCH */
+  const switchCharacter = (c) => {
+    if (c === character) return;
+    setCharacter(c);
+    setMessages([]);
+    setInput('');
   };
 
-  /** STREAMING RESPONSE */
+  /** STREAMING-STYLE RESPONSE (word-by-word reveal) */
   const streamAIResponse = async (fullText) => {
-    setIsTyping(true);
     let current = '';
 
-    setMessages(prev => [...prev, { sender: 'bot', text: '' }]);
+    setMessages((prev) => [...prev, { sender: 'bot', text: '' }]);
 
     const words = fullText.split(' ');
     for (let i = 0; i < words.length; i++) {
-      await new Promise(res => setTimeout(res, 70));
+      await new Promise((res) => setTimeout(res, 40));
       current += (i === 0 ? '' : ' ') + words[i];
 
-      setMessages(prev => {
+      setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = { sender: 'bot', text: current };
         return updated;
       });
     }
-
-    setIsTyping(false);
   };
 
+  /** SEND MESSAGE TO GEMINI */
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isSending) return;
 
     const userText = input;
     setInput('');
+    setIsSending(true);
+    setIsTyping(true);
 
-    setMessages(prev => [...prev, { sender: 'user', text: userText }]);
+    // Add user bubble
+    const updatedMessages = [...messages, { sender: 'user', text: userText }];
+    setMessages(updatedMessages);
 
-    const reply = persona[character][tone];
-    await streamAIResponse(reply);
+    try {
+      const reply = await getGeminiResponse(character, messages, userText);
+      setIsTyping(false);
+      await streamAIResponse(reply);
+    } catch (err) {
+      console.error('Gemini API error:', err);
+      setIsTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: `⚠️ Something went wrong: ${err.message || 'Could not reach the AI. Check your API key and try again.'}`,
+        },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const newChat = () => {
@@ -97,7 +102,6 @@ export default function GrimesAiApp() {
     setMessages([]);
     setInput('');
     setCharacter('Arthur Morgan');
-    setTone('Calm');
   };
 
   return (
@@ -153,9 +157,9 @@ export default function GrimesAiApp() {
               <input
                 autoFocus
                 value={identity}
-                onChange={e => setIdentity(e.target.value)}
+                onChange={(e) => setIdentity(e.target.value)}
                 onBlur={() => setEditingIdentity(false)}
-                onKeyDown={e => e.key === 'Enter' && setEditingIdentity(false)}
+                onKeyDown={(e) => e.key === 'Enter' && setEditingIdentity(false)}
                 className="bg-transparent outline-none text-sm w-full"
               />
             ) : (
@@ -163,38 +167,19 @@ export default function GrimesAiApp() {
             )}
           </div>
 
-          {/* TONE */}
-          <div className="px-5 text-xs uppercase text-zinc-500 mb-2">
-            Communication Tone
-          </div>
-          <div className="grid grid-cols-2 gap-2 px-5 mb-6">
-            {tones.map(t => (
-              <button
-                key={t}
-                onClick={() => setTone(t)}
-                className={`py-2 rounded-full text-xs ${
-                  tone === t
-                    ? 'bg-white text-black'
-                    : 'bg-[#1f1f1f] text-zinc-400'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
           {/* CHARACTERS */}
           <div className="px-5 text-xs uppercase text-zinc-500 mb-2">
             Characters
           </div>
           <div className="space-y-2 px-5 mb-6">
-            {characters.map(c => (
+            {characters.map((c) => (
               <button
                 key={c}
-                onClick={() => setCharacter(c)}
-                className={`w-full py-2 rounded-full text-sm ${
-                  character === c ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]'
-                }`}
+                onClick={() => switchCharacter(c)}
+                className={`w-full py-2 rounded-full text-sm transition-colors ${character === c
+                    ? 'bg-white text-black font-medium'
+                    : 'bg-[#1a1a1a] hover:bg-[#2a2a2a]'
+                  }`}
               >
                 {c}
               </button>
@@ -203,10 +188,10 @@ export default function GrimesAiApp() {
 
           {/* ACTIONS */}
           <div className="px-5 space-y-3">
-            <button onClick={newChat} className="flex gap-3 text-zinc-400">
+            <button onClick={newChat} className="flex gap-3 text-zinc-400 hover:text-white transition-colors">
               <MessageSquarePlus size={16} /> New chat
             </button>
-            <button onClick={newProject} className="flex gap-3 text-zinc-400">
+            <button onClick={newProject} className="flex gap-3 text-zinc-400 hover:text-white transition-colors">
               <FilePlus2 size={16} /> New project
             </button>
           </div>
@@ -235,28 +220,36 @@ export default function GrimesAiApp() {
           </div>
 
           <div className="text-center text-xs text-zinc-400 mt-4">
-            Talking to <span className="text-zinc-300">{character}</span>
+            Talking to <span className="text-zinc-300 font-medium">{character}</span>
           </div>
 
           {/* MESSAGES */}
           <div
             className="flex-1 overflow-y-auto px-6 py-6 max-w-5xl w-full mx-auto space-y-4"
             style={{
-              scrollbarWidth: 'none', /* Firefox */
-              msOverflowStyle: 'none' /* IE 10+ */
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}
           >
+            {messages.length === 0 && !isTyping && (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-3 opacity-40">
+                  <Brain size={48} className="mx-auto" />
+                  <p className="text-sm text-zinc-400">Start a conversation with <strong>{character}</strong></p>
+                </div>
+              </div>
+            )}
+
             {messages.map((m, i) => (
               <div
                 key={i}
                 className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[75%] px-6 py-4 rounded-3xl text-sm ${
-                    m.sender === 'user'
+                  className={`max-w-[75%] px-6 py-4 rounded-3xl text-sm whitespace-pre-line ${m.sender === 'user'
                       ? 'bg-[#111] rounded-tr-none'
                       : 'bg-[#1b1b1b] rounded-tl-none'
-                  }`}
+                    }`}
                 >
                   {m.text}
                 </div>
@@ -264,13 +257,21 @@ export default function GrimesAiApp() {
             ))}
 
             {isTyping && (
-              <div className="text-xs text-zinc-400 italic">{character} is typing…</div>
+              <div className="flex justify-start">
+                <div className="bg-[#1b1b1b] rounded-3xl rounded-tl-none px-6 py-4">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
             )}
 
             <div ref={bottomRef} />
 
             {/* Hide scrollbar for Chrome, Safari, Edge */}
-            <style jsx>{`
+            <style>{`
               div::-webkit-scrollbar {
                 display: none;
               }
@@ -279,16 +280,24 @@ export default function GrimesAiApp() {
 
           {/* INPUT */}
           <div className="px-6 pb-6">
-            <div className="flex items-center gap-4 bg-[#161616] rounded-full px-6 py-4 max-w-5xl mx-auto">
+            <div className="flex items-center gap-4 bg-[#161616] rounded-full px-6 py-4 max-w-5xl mx-auto border border-zinc-800/50">
               <input
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                placeholder="Write a conversation..."
-                className="flex-1 bg-transparent outline-none text-zinc-300"
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder={`Talk to ${character}…`}
+                disabled={isSending}
+                className="flex-1 bg-transparent outline-none text-zinc-300 placeholder-zinc-500 disabled:opacity-50"
               />
               <Paperclip size={18} className="text-zinc-500" />
               <Mic size={18} className="text-zinc-500" />
+              <button
+                onClick={sendMessage}
+                disabled={isSending || !input.trim()}
+                className="text-zinc-400 hover:text-white transition-colors disabled:opacity-30"
+              >
+                <SendHorizonal size={18} />
+              </button>
             </div>
           </div>
         </main>
@@ -296,4 +305,3 @@ export default function GrimesAiApp() {
     </div>
   );
 }
-
