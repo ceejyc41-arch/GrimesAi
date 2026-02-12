@@ -1,11 +1,14 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import GrimesAiApp from './components/GrimesAiApp';
 
-import GrimesAiApp from "./components/GrimesAiApp";
-
-export default function  App() {
+export default function App() {
   return (
-    <div>
-      <GrimesAiApp />
-
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/chat" element={<GrimesAiApp />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
