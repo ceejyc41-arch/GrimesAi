@@ -48,6 +48,23 @@ export default function GrimesAiApp() {
     setSidebarOpen(false);
   };
 
+  /** NEW CHAT */
+  const handleNewChat = () => {
+    setMessages([]);
+    setInput('');
+    setSidebarOpen(false);
+  };
+
+  /** NEW PROJECT */
+  const handleNewProject = () => {
+    setMessages([]);
+    setInput('');
+    setIdentity('Silver-stocks11');
+    setTone('Calm');
+    setCharacter('Arthur Morgan');
+    setSidebarOpen(false);
+  };
+
   const streamAIResponse = async (fullText) => {
     let current = '';
     setMessages((prev) => [...prev, { sender: 'bot', text: '' }]);
@@ -91,7 +108,7 @@ export default function GrimesAiApp() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden text-neutral-200 font-sans bg-black">
+    <div className="relative h-[100dvh] w-full overflow-hidden text-neutral-200 font-sans bg-black">
 
       {/* BACKGROUND with blur */}
       <div
@@ -111,7 +128,9 @@ export default function GrimesAiApp() {
         />
       )}
 
-      <div className="relative z-30 flex h-full">
+      {/* PARENT LAYOUT CONTAINER */}
+      {/* Added md:gap-x-20 for desktop spacing between Sidebar and Main */}
+      <div className="relative z-30 flex h-full md:gap-x-20">
 
         {/* ━━ SIDEBAR ━━ */}
         {/* Mobile: Fixed, 85% width. Desktop: Static, w-96 (Maximized). */}
@@ -125,7 +144,8 @@ export default function GrimesAiApp() {
           md:translate-x-0`}
         >
           {/* Header */}
-          <div className="p-6 md:p-8 border-b border-[#222]">
+          {/* Increased Top Padding to pt-16 for visual separation */}
+          <div className="p-6 pt-10 md:p-8 md:pt-16 border-b border-[#222]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
                 <Brain size={32} className="text-zinc-400 md:w-12 md:h-12" />
@@ -141,72 +161,62 @@ export default function GrimesAiApp() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 space-y-8 md:space-y-16">
+          {/* Sidebar Content - Proportional Filling */}
+          <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 md:p-10 gap-8">
 
-            {/* IDENTITY NAME */}
-            <div>
-              <div className="text-xs md:text-sm font-bold tracking-widest text-zinc-500 uppercase mb-3 md:mb-6">
-                Identity Name
-              </div>
-              <div
-                className="flex items-center gap-4 bg-[#1c1c1c] border border-[#2a2a2a] px-4 py-4 md:px-6 md:py-8 rounded-2xl cursor-pointer hover:border-zinc-600 transition shadow-md"
-                onClick={() => setEditingIdentity(true)}
-              >
-                <div className="bg-zinc-800 p-2 md:p-3 rounded-full">
-                  <User size={18} className="text-zinc-300 md:w-[28px] md:h-[28px]" />
+            {/* TOP GROUP: IDENTITY & TONE */}
+            <div className="space-y-6 md:space-y-10">
+              {/* IDENTITY NAME */}
+              <div>
+                <div className="text-xs md:text-sm font-bold tracking-widest text-zinc-500 uppercase mb-3 md:mb-5">
+                  Identity Name
                 </div>
-                {editingIdentity ? (
-                  <input
-                    autoFocus
-                    value={identity}
-                    onChange={(e) => setIdentity(e.target.value)}
-                    onBlur={() => setEditingIdentity(false)}
-                    className="bg-transparent outline-none text-lg md:text-2xl w-full text-zinc-200"
-                  />
-                ) : (
-                  <span className="text-lg md:text-2xl text-zinc-200 font-medium truncate">{identity}</span>
-                )}
+                <div
+                  className="flex items-center gap-4 bg-[#1c1c1c] border border-[#2a2a2a] px-4 py-4 md:px-6 md:py-8 rounded-2xl cursor-pointer hover:border-zinc-600 transition shadow-md"
+                  onClick={() => setEditingIdentity(true)}
+                >
+                  <div className="bg-zinc-800 p-2 md:p-3 rounded-full">
+                    <User size={18} className="text-zinc-300 md:w-[28px] md:h-[28px]" />
+                  </div>
+                  {editingIdentity ? (
+                    <input
+                      autoFocus
+                      value={identity}
+                      onChange={(e) => setIdentity(e.target.value)}
+                      onBlur={() => setEditingIdentity(false)}
+                      className="bg-transparent outline-none text-lg md:text-2xl w-full text-zinc-200"
+                    />
+                  ) : (
+                    <span className="text-lg md:text-2xl text-zinc-200 font-medium truncate">{identity}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* COMMUNICATION TONE */}
+              <div>
+                <div className="text-xs md:text-sm font-bold tracking-widest text-zinc-500 uppercase mb-3 md:mb-5">
+                  Communication Tone
+                </div>
+                <div className="grid grid-cols-2 gap-3 md:gap-5">
+                  {['Calm', 'Protective', 'Observant', 'Introverted'].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setTone(t)}
+                      className={`px-4 py-4 md:px-6 md:py-8 rounded-2xl text-base md:text-2xl font-medium transition-all shadow-sm
+                        ${tone === t
+                          ? 'bg-[#2a2a2a] text-white border border-zinc-600'
+                          : 'bg-[#161616] text-zinc-400 border border-[#222] hover:bg-[#202020]'}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* COMMUNICATION TONE */}
+            {/* MIDDLE GROUP: CHARACTERS (Moved Up) */}
             <div>
-              <div className="text-xs md:text-sm font-bold tracking-widest text-zinc-500 uppercase mb-3 md:mb-6">
-                Communication Tone
-              </div>
-              <div className="grid grid-cols-2 gap-3 md:gap-5">
-                {['Calm', 'Protective', 'Observant', 'Introverted'].map(t => (
-                  <button
-                    key={t}
-                    onClick={() => setTone(t)}
-                    className={`px-3 py-3 md:px-6 md:py-6 rounded-xl text-sm md:text-xl font-medium transition-all shadow-sm
-                      ${tone === t
-                        ? 'bg-[#2a2a2a] text-white border border-zinc-600'
-                        : 'bg-[#161616] text-zinc-400 border border-[#222] hover:bg-[#202020]'}`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <hr className="border-[#222]" />
-
-            {/* ACTIONS */}
-            <div className="space-y-4 md:space-y-8">
-              <button className="flex items-center gap-4 md:gap-6 text-base md:text-2xl text-zinc-300 hover:text-white transition group w-full p-2 md:p-4 hover:bg-white/5 rounded-xl">
-                <MessageSquarePlus size={22} className="md:w-[32px] md:h-[32px] group-hover:scale-110 transition-transform" />
-                <span>New chat</span>
-              </button>
-              <button className="flex items-center gap-4 md:gap-6 text-base md:text-2xl text-zinc-300 hover:text-white transition group w-full p-2 md:p-4 hover:bg-white/5 rounded-xl">
-                <FilePlus2 size={22} className="md:w-[32px] md:h-[32px] group-hover:scale-110 transition-transform" />
-                <span>New project</span>
-              </button>
-            </div>
-
-            {/* CHARACTERS */}
-            <div>
-              <div className="text-xs md:text-sm font-bold tracking-widest text-zinc-500 uppercase mb-3 md:mb-6 mt-4">
+              <div className="text-xs md:text-sm font-bold tracking-widest text-zinc-500 uppercase mb-3 md:mb-5 mt-4">
                 Characters
               </div>
               <div className="space-y-2 md:space-y-4">
@@ -223,6 +233,25 @@ export default function GrimesAiApp() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* BUTTONS: Normal Flow (mt-8 spacing) */}
+            {/* Resized: h-11 (44px), px-4, text-base, icon=22 */}
+            <div className="flex flex-col gap-3 mt-8">
+              <button
+                onClick={handleNewChat}
+                className="flex items-center justify-start gap-3 h-11 px-4 text-base text-zinc-300 hover:text-white transition group w-full hover:bg-white/5 rounded-xl border border-[#222] hover:border-zinc-600 shadow-lg bg-[#111]"
+              >
+                <MessageSquarePlus size={22} className="group-hover:scale-110 transition-transform" />
+                <span>New chat</span>
+              </button>
+              <button
+                onClick={handleNewProject}
+                className="flex items-center justify-start gap-3 h-11 px-4 text-base text-zinc-300 hover:text-white transition group w-full hover:bg-white/5 rounded-xl border border-[#222] hover:border-zinc-600 shadow-lg bg-[#111]"
+              >
+                <FilePlus2 size={22} className="group-hover:scale-110 transition-transform" />
+                <span>New project</span>
+              </button>
             </div>
 
           </div>
@@ -242,10 +271,11 @@ export default function GrimesAiApp() {
 
 
         {/* ━━ MAIN CHAT ━━ */}
-        <main className="flex-1 flex flex-col relative h-full">
+        {/* Removed md:ml-12 hack. Gap handled by parent flex container */}
+        <main className="flex-1 flex flex-col relative h-full min-h-0">
 
           {/* Mobile Header Toggle */}
-          <div className="md:hidden flex items-center justify-between p-4 bg-black/80 border-b border-zinc-800 z-10 sticky top-0">
+          <div className="md:hidden flex items-center justify-between p-4 bg-black/80 border-b border-zinc-800 z-10 sticky top-0 shrink-0">
             <button onClick={() => setSidebarOpen(true)}>
               <Menu size={28} className="text-white" />
             </button>
@@ -253,37 +283,40 @@ export default function GrimesAiApp() {
             <div className="w-7" />
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-10 py-6 md:py-12 space-y-6 md:space-y-10 custom-scrollbar">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full opacity-30 select-none pointer-events-none">
-                <Brain size={60} className="mb-4 md:mb-6 text-white md:w-24 md:h-24" />
-                <p className="text-xl md:text-3xl font-light tracking-widest text-center px-4">START A CONVERSATION</p>
-              </div>
-            )}
-            {messages.map((m, i) => (
-              <div key={i} className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                {/* Name Label */}
-                <span className="text-xs md:text-base text-zinc-400 mb-2 md:mb-3 px-2 font-medium">
-                  {m.sender === 'user' ? 'User' : character}
-                </span>
-
-                {/* Bubble */}
-                <div
-                  className={`max-w-[90%] md:max-w-[75%] px-5 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-3xl text-base md:text-2xl leading-relaxed shadow-lg break-words
-                  ${m.sender === 'user'
-                      ? 'bg-[#1a1a1a]/90 text-zinc-200 border border-white/5 rounded-br-sm'
-                      : 'bg-[#0f0f0f]/95 text-zinc-100 border border-white/10 rounded-bl-sm shadow-black/50'}`}
-                >
-                  {m.text}
+          {/* Messages Area - CENTERED & PADDED */}
+          {/* px-6 ensures internal padding. md:px-0 lets gap handle layout, but max-w-5xl centers it. */}
+          <div className="flex-1 overflow-y-auto px-6 md:px-0 py-6 md:py-12 custom-scrollbar min-h-0">
+            <div className="max-w-5xl mx-auto space-y-6 md:space-y-10">
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-[60vh] opacity-30 select-none pointer-events-none">
+                  <Brain size={60} className="mb-4 md:mb-6 text-white md:w-24 md:h-24" />
+                  <p className="text-xl md:text-3xl font-light tracking-widest text-center px-4">START A CONVERSATION</p>
                 </div>
-              </div>
-            ))}
-            <div ref={bottomRef} />
+              )}
+              {messages.map((m, i) => (
+                <div key={i} className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                  {/* Name Label */}
+                  <span className="text-xs md:text-base text-zinc-400 mb-2 md:mb-3 px-2 font-medium">
+                    {m.sender === 'user' ? 'User' : character}
+                  </span>
+
+                  {/* Bubble */}
+                  <div
+                    className={`max-w-[100%] md:max-w-[85%] px-5 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-3xl text-base md:text-2xl leading-relaxed shadow-lg break-words
+                    ${m.sender === 'user'
+                        ? 'bg-[#1a1a1a]/90 text-zinc-200 border border-white/5 rounded-br-sm'
+                        : 'bg-[#0f0f0f]/95 text-zinc-100 border border-white/10 rounded-bl-sm shadow-black/50'}`}
+                  >
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+              <div ref={bottomRef} />
+            </div>
           </div>
 
-          {/* Floating Input Area */}
-          <div className="px-4 sm:px-6 md:px-10 pb-6 md:pb-12 pt-4 md:pt-6">
+          {/* Floating Input Area - CENTERED & PADDED */}
+          <div className="px-6 md:px-0 pb-8 md:pb-12 pt-4 md:pt-6 shrink-0">
             <div className="max-w-5xl mx-auto bg-[#0a0a0a]/90 backdrop-blur-md rounded-[24px] md:rounded-[40px] border border-[#222] shadow-2xl p-4 md:p-6 flex flex-col gap-3 md:gap-5">
 
               {/* Input Field */}
