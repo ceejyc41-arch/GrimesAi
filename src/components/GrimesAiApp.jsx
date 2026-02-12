@@ -254,6 +254,11 @@ export default function GrimesAiApp() {
               </button>
             </div>
 
+            {/* DECORATIVE AI LOGO - Fills remaining space */}
+            <div className="flex-1 flex items-center justify-center opacity-20 select-none pointer-events-none">
+              <Brain size={120} />
+            </div>
+
           </div>
 
           {/* FOOTER */}

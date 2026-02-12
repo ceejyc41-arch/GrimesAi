@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
 
 export default function HomePage() {
     const navigate = useNavigate();
-    const [menuOpen, setMenuOpen] = useState(false);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
@@ -40,35 +38,6 @@ export default function HomePage() {
                         <a href="#" className="hover:text-white hover:scale-105 transition-all duration-200">Home</a>
                         <a href="#" className="hover:text-white hover:scale-105 transition-all duration-200">About</a>
                         <a href="#" className="hover:text-white hover:scale-105 transition-all duration-200">System</a>
-                    </div>
-
-                    {/* Hamburger (Visible on Mobile, Absolute Left for Desktop) */}
-                    <button
-                        className="absolute left-6 top-6 md:left-10 md:top-12 text-zinc-300 hover:text-white transition transform hover:scale-110"
-                        onClick={() => setMenuOpen(!menuOpen)}
-                    >
-                        <Menu size={32} className="md:w-10 md:h-10" strokeWidth={2} />
-                    </button>
-                </div>
-
-                {/* Mobile Sidebar Menu (Animated Drawer) */}
-                {/* Fullscreen overlay on mobile, distinct from desktop centered links */}
-                <div
-                    className={`fixed inset-0 z-50 bg-black/95 backdrop-blur-xl transition-transform duration-300 
-            ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-                >
-                    <div className="p-8 h-full flex flex-col">
-                        <div className="flex justify-between items-center mb-12">
-                            <span className="text-2xl font-bold tracking-widest text-white">MENU</span>
-                            <button onClick={() => setMenuOpen(false)} className="text-zinc-400 hover:text-white">
-                                <X size={36} />
-                            </button>
-                        </div>
-                        <div className="space-y-8 text-3xl font-light text-zinc-300 flex flex-col items-start">
-                            <a href="#" onClick={() => setMenuOpen(false)} className="block hover:text-white hover:translate-x-2 transition-all">Home</a>
-                            <a href="#" onClick={() => setMenuOpen(false)} className="block hover:text-white hover:translate-x-2 transition-all">About</a>
-                            <a href="#" onClick={() => setMenuOpen(false)} className="block hover:text-white hover:translate-x-2 transition-all">System</a>
-                        </div>
                     </div>
                 </div>
 
